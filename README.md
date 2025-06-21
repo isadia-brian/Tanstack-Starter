@@ -14,7 +14,9 @@ To run:
 bun run dev
 ```
 
-#### The Basics
+## The Basics
+
+---
 
 ##### Dependencies
 
@@ -85,3 +87,73 @@ The `StartClient` component seen above helps us hydrate client-side javascript o
 We therefore use it to hydrate the root of our application
 
 This enables us to kick off client-side routing once the user's initial server request has fulfilled.
+
+##### The Root of the Application
+
+`src/__root.tsx`
+
+The `__root` route is the entry point of the application
+
+- It wrappes all other routes of the application including the home page.
+- It behaves like a pathless layout route for the whole application.
+- It is always rendered hence the perfect place to construct the application shell and place global logic.
+
+##### Routes
+
+Are an extensive feature of Tanstack Router
+
+- Defined using the `createFileRoute` function
+- Are code-split and lazy-loaded automatically
+- Critical data fetching are done here through the loader
+
+`src/routes/index.tsx, src/routes/about.tsx`
+
+##### Navigation
+
+Tanstack Start is build on top of Tanstack Router, hence all nav features of TS Router are available.
+
+A summary of features:
+
+- `Link` component navigates to a new route.
+- `useNavigate` hook can be used to navigate imperatively.
+- You can use the `useRouter` hook anywhere in the application to access the router instance and perform invalidations.
+- Every router hook that returns state is reactive, reruns when appropriate state changes.
+
+Quick example of the `Link` component
+
+```tsx
+import { Link } from "@tanstack/react-router";
+
+function Home() {
+  return <Link to="/about">About</Link>;
+}
+```
+
+##### Server Functions
+
+Allow you to create server-side functions that can be called from both the server during SSR and the client!
+
+Quick overview of how server functions work:
+
+- Created using the `createServerFn` function.
+- Can be called from both the server during SSR and the client.
+- Can be used to fetch data, or perform other server side functions.
+
+An example of how you can use server functions to fetch and return data from the server:
+
+```tsx
+import { createServerFn } from "@tanstack/react-start";
+import * as fs from "node:fs";
+import { z } from "zod";
+
+const getUserById = createServerFn({ method: "GET" })
+  // Always validate data sent to the function, here we use Zod
+  .validator(z.string())
+  // The handler function is where you perform the server-side logic
+  .handler(async ({ data }) => {
+    return db.query.users.findFirst({ where: eq(users.id, data) });
+  });
+
+// Somewhere else in your application
+const user = await getUserById({ data: "1" });
+```
